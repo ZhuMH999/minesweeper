@@ -20,8 +20,8 @@ class View:
         for i in range(self.model.y):
             for j in range(self.model.x):
                 pygame.draw.rect(self.win, (255, 255, 255), (SQUARE_SIZE*j, SQUARE_SIZE*i, SQUARE_SIZE, SQUARE_SIZE), width=1)
-                if 's' in self.model.board[j][i]:
-                    self.get_text_widget_and_center((255, 255, 255), SQUARE_SIZE * j + 25, SQUARE_SIZE * i + 25, FONT, self.model.board[j][i].split('s')[0])
+                if 's' in self.model.board[i][j]:
+                    self.get_text_widget_and_center((255, 255, 255), SQUARE_SIZE * j + 25, SQUARE_SIZE * i + 25, FONT, self.model.board[i][j].split('s')[0])
                 elif 'F' in self.model.board[i][j]:
                     self.get_text_widget_and_center((255, 255, 255), SQUARE_SIZE * j + 25, SQUARE_SIZE * i + 25, FONT, 'F')
 
@@ -73,7 +73,7 @@ class Model:
     def check_where_mouse_clicked(self, x, y):
         if 0 < x < SQUARE_SIZE*self.x and 0 < y < SQUARE_SIZE*self.y:
             print(x//SQUARE_SIZE)
-            self.dfs_check(y//SQUARE_SIZE, x//SQUARE_SIZE, True)
+            self.dfs_check(x//SQUARE_SIZE, y//SQUARE_SIZE, True)
 
     def flag_piece(self, x, y):
         if 0 < x < SQUARE_SIZE * self.x and 0 < y < SQUARE_SIZE * self.y:
