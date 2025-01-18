@@ -36,6 +36,8 @@ class Model:
     def __init__(self):
         self.x = 8
         self.y = 8
+        self.mine_count = 10
+        self.end = None
         self.board = [['0' for _ in range(self.x)] for _ in range(self.y)]
         self.setup_board()
 
@@ -52,7 +54,7 @@ class Model:
                             self.dfs_check(cellx + constant[0], celly + constant[1])
 
     def setup_board(self):
-        for j in range(8):
+        for j in range(self.mine_count):
             done = False
             while not done:
                 temp_x, temp_y = random.randint(0, self.x - 1), random.randint(0, self.y - 1)
@@ -71,9 +73,9 @@ class Model:
                     self.board[a][b] = str(counter)
 
     def check_where_mouse_clicked(self, x, y):
-        if 0 < x < SQUARE_SIZE*self.x and 0 < y < SQUARE_SIZE*self.y:
-            print(x//SQUARE_SIZE)
+        if 0 < x < SQUARE_SIZE*self.x and 0 < y < SQUARE_SIZE*self.y and self.end is None:
             self.dfs_check(x//SQUARE_SIZE, y//SQUARE_SIZE, True)
+            self.check_for_end(x//SQUARE_SIZE, y//SQUARE_SIZE)
 
     def flag_piece(self, x, y):
         if 0 < x < SQUARE_SIZE * self.x and 0 < y < SQUARE_SIZE * self.y:
@@ -83,6 +85,20 @@ class Model:
                 else:
                     self.board[y//SQUARE_SIZE][x//SQUARE_SIZE] += 'F'
 
+    def check_for_end(self, x, y):
+        if 'M' in self.board[y][x]:
+            self.end = False
+            print('game over')
+
+        counter = 0
+        for i in range(self.y):
+            for j in range(self.x):
+                if 's' in self.board[i][j] and 'M' not in self.board[i][j]:
+                    counter += 1
+
+        if self.x * self.y - self.mine_count == counter:
+            self.end = True
+            print('win')
 
 class Controller:
     def __init__(self):
