@@ -1,26 +1,10 @@
 import random
 import pygame
+import math
+from minesweeper.constants import FONT, SQUARE, WIDTH, HEIGHT, SQUARE_SIZE, ADJ_SQUARES, COLORS
 
 pygame.init()
 pygame.font.init()
-
-WIDTH, HEIGHT = (800, 600)
-SQUARE_SIZE = 50
-constants = [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [-1, 1], [1, -1], [-1, -1]]
-FONT = pygame.font.Font('mine-sweeper.ttf', 15)
-SQUARE = pygame.transform.scale(pygame.image.load('square.png'), (SQUARE_SIZE, SQUARE_SIZE))
-
-COLORS = {0: (100, 100, 100),
-          1: (0, 0, 255),
-          2: (0, 255, 0),
-          3: (255, 0, 0),
-          4: (0, 0, 127),
-          5: (255, 0, 255),
-          6: (14, 124, 97),
-          7: (255, 0, 255),
-          8: (100, 100, 100),
-          '*': (255, 255, 255)}
-
 
 class View:
     def __init__(self, model, win):
@@ -28,20 +12,44 @@ class View:
         self.win = win
 
     def draw(self):
+        x, y = pygame.mouse.get_pos()
         self.win.fill((200, 200, 200))
-        for i in range(self.model.y):
-            for j in range(self.model.x):
-                pygame.draw.rect(self.win, (100, 100, 100), (SQUARE_SIZE*j, SQUARE_SIZE*i, SQUARE_SIZE, SQUARE_SIZE), width=2)
 
-                if 's' not in self.model.board[i][j]:
-                    self.win.blit(SQUARE, (SQUARE_SIZE*j, SQUARE_SIZE*i, SQUARE_SIZE, SQUARE_SIZE))
+        if self.model.x is not None:
+            for i in range(self.model.y):
+                for j in range(self.model.x):
+                    pygame.draw.rect(self.win, (100, 100, 100), (SQUARE_SIZE*j, SQUARE_SIZE*i, SQUARE_SIZE, SQUARE_SIZE), width=2)
+    
+                    if 's' not in self.model.board[i][j]:
+                        self.win.blit(SQUARE, (SQUARE_SIZE*j, SQUARE_SIZE*i, SQUARE_SIZE, SQUARE_SIZE))
+    
+                    if (('s' in self.model.board[i][j] and self.model.end is None) or self.model.end is not None) and '*' in self.model.board[i][j]:
+                        self.get_text_widget_and_center(COLORS[self.model.board[i][j].split('s')[0].split('F')[0]], SQUARE_SIZE * j + SQUARE_SIZE/2, SQUARE_SIZE * i + SQUARE_SIZE/2, FONT, self.model.board[i][j].split('s')[0].split('F')[0])
+                    elif ('s' in self.model.board[i][j] and self.model.end is None) or self.model.end is not None:
+                        self.get_text_widget_and_center(COLORS[int(self.model.board[i][j].split('s')[0].split('F')[0])], SQUARE_SIZE * j + SQUARE_SIZE/2, SQUARE_SIZE * i + SQUARE_SIZE/2, FONT, self.model.board[i][j].split('s')[0].split('F')[0])
+                    elif 'F' in self.model.board[i][j]:
+                        self.get_text_widget_and_center((255, 255, 255), SQUARE_SIZE * j + 25, SQUARE_SIZE * i + 25, FONT, 'F')
 
-                if 's' in self.model.board[i][j] and '*' in self.model.board[i][j]:
-                    self.get_text_widget_and_center(COLORS[self.model.board[i][j].split('s')[0]], SQUARE_SIZE * j + 25, SQUARE_SIZE * i + 25, FONT, self.model.board[i][j].split('s')[0])
-                elif 's' in self.model.board[i][j]:
-                    self.get_text_widget_and_center(COLORS[int(self.model.board[i][j].split('s')[0])], SQUARE_SIZE * j + 25, SQUARE_SIZE * i + 25, FONT, self.model.board[i][j].split('s')[0])
-                elif 'F' in self.model.board[i][j]:
-                    self.get_text_widget_and_center((255, 255, 255), SQUARE_SIZE * j + 25, SQUARE_SIZE * i + 25, FONT, 'F')
+            if self.model.end is not None:
+                pygame.draw.rect(self.win, (90, 90, 90), (250, 195, 300, 190), border_radius=4)
+                pygame.draw.rect(self.win, (238, 238, 210), (255, 200, 290, 180), border_radius=4)
+                self.get_text_widget_and_center((118, 150, 86), 400, 215, FONT, 'Game Over!')
+
+                pygame.draw.rect(self.win, (100, 100, 100), (265, 265, 130, 60), border_radius=4)
+                if 265 < x < 395 and 270 < y < 330:
+                    pygame.draw.rect(self.win, (170, 170, 170), (270, 270, 120, 50), border_radius=4)
+
+                pygame.draw.rect(self.win, (100, 100, 100), (405, 265, 130, 60), border_radius=4)
+                if 405 < x < 535 and 270 < y < 330:
+                    pygame.draw.rect(self.win, (170, 170, 170), (410, 270, 120, 50), border_radius=4)
+
+                pygame.draw.rect(self.win, (100, 100, 100), (345, 335, 110, 40), border_radius=4)
+                if 345 < x < 455 and 335 < y < 375:
+                    pygame.draw.rect(self.win, (170, 170, 170), (350, 340, 100, 30), border_radius=4)
+
+                self.get_text_widget_and_center((238, 238, 210), 330, 295, FONT, 'Play Again')
+                self.get_text_widget_and_center((238, 238, 210), 470, 295, FONT, 'Main Menu')
+                self.get_text_widget_and_center((238, 238, 210), 400, 355, FONT, 'Quit Game')
 
     def get_text_widget_and_center(self, rgb, c_x, c_y, font, text):
         widget = font.render(text, True, rgb)
@@ -52,9 +60,9 @@ class View:
 
 class Model:
     def __init__(self):
-        self.x = 10
+        self.x = 15
         self.y = 10
-        self.mine_count = 30
+        self.mine_count = 10
         self.end = None
         self.board = [['0' for _ in range(self.x)] for _ in range(self.y)]
         self.setup_board()
