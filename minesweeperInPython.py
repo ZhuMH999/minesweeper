@@ -1,9 +1,7 @@
 import random
 import pygame
 import math
-from minesweeper.constants import FONT, FONT2_1, FONT2_2, SQUARE, WIDTH, HEIGHT, SQUARE_SIZE, COLORS
-
-constants = [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [-1, 1], [1, -1], [-1, -1]]
+from minesweeper.constants import FONT, FONT2_1, FONT2_2, SQUARE, WIDTH, HEIGHT, SQUARE_SIZE, COLORS, ADJ8
 
 pygame.init()
 pygame.font.init()
@@ -21,16 +19,17 @@ class View:
             for i in range(self.model.y):
                 for j in range(self.model.x):
                     pygame.draw.rect(self.win, (150, 150, 150), (SQUARE_SIZE*j, SQUARE_SIZE*i, SQUARE_SIZE, SQUARE_SIZE), width=2)
-    
+
                     if 's' not in self.model.board[i][j]:
                         self.win.blit(SQUARE, (SQUARE_SIZE*j, SQUARE_SIZE*i, SQUARE_SIZE, SQUARE_SIZE))
 
-                    if (('s' in self.model.board[i][j] and self.model.end is None) or self.model.end is not None) and '*' in self.model.board[i][j]:
-                        self.get_text_widget_and_center(COLORS[self.model.board[i][j].split('s')[0].split('F')[0]], SQUARE_SIZE * j + SQUARE_SIZE/2, SQUARE_SIZE * i + SQUARE_SIZE/2, FONT, self.model.board[i][j].split('s')[0].split('F')[0])
-                    elif ('s' in self.model.board[i][j] and self.model.end is None) or self.model.end is not None:
-                        self.get_text_widget_and_center(COLORS[int(self.model.board[i][j].split('s')[0].split('F')[0])], SQUARE_SIZE * j + SQUARE_SIZE/2, SQUARE_SIZE * i + SQUARE_SIZE/2, FONT, self.model.board[i][j].split('s')[0].split('F')[0])
-                    elif 'F' in self.model.board[i][j]:
-                        self.get_text_widget_and_center((255, 255, 255), SQUARE_SIZE * j + 25, SQUARE_SIZE * i + 25, FONT, 'F')
+                    if '0' not in self.model.board[i][j]:
+                        if (('s' in self.model.board[i][j] and self.model.end is None) or self.model.end is not None) and '*' in self.model.board[i][j]:
+                            self.get_text_widget_and_center(COLORS[self.model.board[i][j].split('s')[0].split('F')[0]], SQUARE_SIZE * j + SQUARE_SIZE/2, SQUARE_SIZE * i + SQUARE_SIZE/2, FONT, self.model.board[i][j].split('s')[0].split('F')[0])
+                        elif ('s' in self.model.board[i][j] and self.model.end is None) or self.model.end is not None:
+                            self.get_text_widget_and_center(COLORS[int(self.model.board[i][j].split('s')[0].split('F')[0])], SQUARE_SIZE * j + SQUARE_SIZE/2, SQUARE_SIZE * i + SQUARE_SIZE/2, FONT, self.model.board[i][j].split('s')[0].split('F')[0])
+                        elif 'F' in self.model.board[i][j]:
+                            self.get_text_widget_and_center((255, 255, 255), SQUARE_SIZE * j + 25, SQUARE_SIZE * i + 25, FONT, 'F')
 
             if self.model.end is not None:
                 pygame.draw.rect(self.win, (90, 90, 90), (250, 195, 300, 190), border_radius=4)
@@ -74,7 +73,7 @@ class Model:
         if check_current_cell and 'F' not in self.board[celly][cellx]:
             self.board[celly][cellx] += 's'
         if '0' in self.board[celly][cellx] and 'F' not in self.board[celly][cellx]:
-            for constant in constants:
+            for constant in ADJ8:
                 if -1 < cellx + constant[0] < self.x and -1 < celly + constant[1] < self.y:
                     if self.board[celly + constant[1]][cellx + constant[0]] != '*' and 's' not in self.board[celly + constant[1]][cellx + constant[0]]:
                         self.board[celly + constant[1]][cellx + constant[0]] = self.board[celly + constant[1]][cellx + constant[0]].split('F')[0]
@@ -86,7 +85,7 @@ class Model:
     def check_for_adj(x, y, minex, miney):
         if x == minex and y == miney:
             return False
-        for constant in constants:
+        for constant in ADJ8:
             if y + constant[1] == miney and x + constant[0] == minex:
                 return False
         return True
@@ -103,7 +102,7 @@ class Model:
         for a in range(self.y):
             for b in range(self.x):
                 counter = 0
-                for constant in constants:
+                for constant in ADJ8:
                     if -1 < b + constant[0] < self.x and -1 < a + constant[1] < self.y:
                         if self.board[a + constant[1]][b + constant[0]] == '*':
                             counter += 1
